@@ -28,3 +28,4 @@ aiohttp>=3.9.1
 # Utilities
 python-dateutil>=2.8.2
 icalendar>=5.0.11
+email-validator>=2.0.0
