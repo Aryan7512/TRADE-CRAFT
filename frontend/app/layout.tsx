@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
     title: 'TradeCraft - Master Technical Skills Through Exchange',
@@ -17,31 +18,33 @@ export default function RootLayout({
     children: React.ReactNode
 }) {
     return (
-        <html lang="en" className="scroll-smooth">
-            <body className={inter.className}>
-                {children}
-                <Toaster
-                    position="top-right"
-                    toastOptions={{
-                        duration: 4000,
-                        style: {
-                            background: '#1e293b',
-                            color: '#e2e8f0',
-                        },
-                        success: {
-                            iconTheme: {
-                                primary: '#10b981',
-                                secondary: '#fff',
+        <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+            <body className={`${inter.className} ${inter.variable}`}>
+                <ThemeProvider>
+                    {children}
+                    <Toaster
+                        position="top-right"
+                        toastOptions={{
+                            duration: 4000,
+                            style: {
+                                background: '#1e293b',
+                                color: '#e2e8f0',
                             },
-                        },
-                        error: {
-                            iconTheme: {
-                                primary: '#ef4444',
-                                secondary: '#fff',
+                            success: {
+                                iconTheme: {
+                                    primary: '#10b981',
+                                    secondary: '#fff',
+                                },
                             },
-                        },
-                    }}
-                />
+                            error: {
+                                iconTheme: {
+                                    primary: '#ef4444',
+                                    secondary: '#fff',
+                                },
+                            },
+                        }}
+                    />
+                </ThemeProvider>
             </body>
         </html>
     )

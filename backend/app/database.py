@@ -114,19 +114,33 @@ class Database:
     ) -> List[Dict[str, Any]]:
         """Find similar skills using vector similarity"""
         try:
-            # Use the SQL function we created
-            query = f"""
-                SELECT s.*, 
-                       1 - (s.embedding <=> '[{','.join(map(str, embedding))}]'::vector) as similarity
-                FROM skills s
-                WHERE s.mode = '{mode}'
-                AND s.embedding IS NOT NULL
-                {f"AND s.user_id != '{exclude_user_id}'" if exclude_user_id else ""}
-                ORDER BY s.embedding <=> '[{','.join(map(str, embedding))}]'::vector
-                LIMIT {limit}
-            """
-            response = self.service_client.rpc("exec_sql", {"query": query}).execute()
-            return response.data or []
+            # Use the RPC function defined in schema.sql
+            response = self.service_client.rpc(
+                "find_similar_skills",
+                {
+                    "query_embedding": embedding,
+                    "query_mode": mode,
+                    "limit_count": limit
+                }
+            ).execute()
+            
+            results = response.data or []
+            
+            # If we need to exclude a user, filter the results
+            if exclude_user_id:
+                results = [r for r in results if r.get("user_id") != exclude_user_id]
+            
+            # Convert RPC result format to expected format
+            enriched_results = []
+            for result in results:
+                # Get the full skill data
+                skill_response = self.client.table("skills").select("*").eq("id", result["skill_id"]).execute()
+                if skill_response.data:
+                    skill = skill_response.data[0]
+                    skill["similarity"] = result.get("similarity", 0)
+                    enriched_results.append(skill)
+            
+            return enriched_results[:limit]
         except Exception as e:
             logger.error(f"Error finding similar skills: {e}")
             return []
