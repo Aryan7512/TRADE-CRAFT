@@ -47,7 +47,8 @@ class Database:
     async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create new user"""
         try:
-            response = self.client.table("users").insert(user_data).execute()
+            # Use service_client to bypass RLS since we've validated the user in the route
+            response = self.service_client.table("users").insert(user_data).execute()
             return response.data[0] if response.data else None
         except Exception as e:
             logger.error(f"Error creating user: {e}")
@@ -56,7 +57,8 @@ class Database:
     async def update_user(self, user_id: str, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update user profile"""
         try:
-            response = self.client.table("users").update(user_data).eq("id", user_id).execute()
+            # Use service_client to bypass RLS since we've validated the user in the route
+            response = self.service_client.table("users").update(user_data).eq("id", user_id).execute()
             return response.data[0] if response.data else None
         except Exception as e:
             logger.error(f"Error updating user {user_id}: {e}")
@@ -194,6 +196,19 @@ class Database:
         except Exception as e:
             logger.error(f"Error updating session {session_id}: {e}")
             return None
+
+    async def get_user_sessions(self, user_id: str) -> List[Dict[str, Any]]:
+        """Get all sessions for a user across all their matches"""
+        try:
+            # Join with matches to filter by user participation
+            # Note: the foreign key syntax matches!inner ensures we only get sessions linked to matches valid for this user
+            response = self.client.table("sessions").select(
+                "*, match:matches!inner(user1_id, user2_id, user1:users!matches_user1_id_fkey(name, email), user2:users!matches_user2_id_fkey(name, email))"
+            ).or_(f"user1_id.eq.{user_id},user2_id.eq.{user_id}", foreign_table="match").order("scheduled_at").execute()
+            return response.data or []
+        except Exception as e:
+            logger.error(f"Error fetching user sessions {user_id}: {e}")
+            return []
     
     # ==================== MESSAGE OPERATIONS ====================
     

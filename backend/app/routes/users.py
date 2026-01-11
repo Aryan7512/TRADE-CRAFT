@@ -34,14 +34,29 @@ async def get_user(user_id: str):
 
 
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(user_data: UserCreate):
+async def create_user(
+    user_data: UserCreate,
+    current_user: dict = Depends(get_current_user)
+):
     """Create new user"""
     # Check if user already exists
-    existing_user = await db.get_user_by_email(user_data.email)
+    existing_user = await db.get_user_by_id(current_user["id"])
     if existing_user:
+        raise HTTPException(status_code=400, detail="User profile already exists")
+    
+    # Verify email matches token
+    if user_data.email != current_user["email"]:
+        raise HTTPException(status_code=400, detail="Email does not match authenticated user")
+    
+    # Check if email is used by another user (edge case)
+    existing_email = await db.get_user_by_email(user_data.email)
+    if existing_email and existing_email["id"] != current_user["id"]:
         raise HTTPException(status_code=400, detail="User with this email already exists")
     
-    user = await db.create_user(user_data.model_dump())
+    user_dict = user_data.model_dump()
+    user_dict["id"] = current_user["id"]
+    
+    user = await db.create_user(user_dict)
     if not user:
         raise HTTPException(status_code=500, detail="Failed to create user")
     

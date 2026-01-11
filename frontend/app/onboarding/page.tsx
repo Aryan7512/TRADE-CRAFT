@@ -105,36 +105,48 @@ export default function OnboardingPage() {
 
         try {
             // 1. Create User
-            await api.createUser({
+            const userData = {
                 name: profile.name,
                 email: (await supabase.auth.getUser()).data.user?.email,
                 bio: profile.bio,
                 availability: { times: availability }
-            })
+            };
+            console.log('Creating user with data:', userData);
+            await api.createUser(userData);
+            console.log('User created successfully');
 
             // 2. Add Teaching Skills
+            console.log('Adding teaching skills:', teachSkills);
             for (const skill of teachSkills) {
-                await api.createSkill({
+                const skillData = {
                     name: skill.name,
                     level: skill.level,
                     mode: 'TEACH'
-                })
+                };
+                console.log('Adding teaching skill:', skillData);
+                await api.createSkill(skillData);
             }
+            console.log('Teaching skills added successfully');
 
             // 3. Add Learning Skills
+            console.log('Adding learning skills:', learnSkills);
             for (const skill of learnSkills) {
-                await api.createSkill({
+                const skillData = {
                     name: skill.name,
                     level: skill.level,
                     mode: 'LEARN'
-                })
+                };
+                console.log('Adding learning skill:', skillData);
+                await api.createSkill(skillData);
             }
+            console.log('Learning skills added successfully');
 
             toast.success('Profile created successfully!')
             router.push('/dashboard')
 
         } catch (error: any) {
-            toast.error('Failed to create profile: ' + error.message)
+            console.error('Failed to create profile:', error.response ? error.response.data : error.message);
+            toast.error('Failed to create profile: ' + (error.response ? error.response.data.detail || error.message : error.message));
         } finally {
             setLoading(false)
         }

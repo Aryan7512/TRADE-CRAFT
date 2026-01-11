@@ -32,9 +32,14 @@ export default function LandingPage() {
                             </Link>
                         </div>
 
-                        <Link href="/auth" className="btn-primary">
-                            Get Started
-                        </Link>
+                        <div className="flex items-center space-x-4">
+                            <Link href="/login" className="text-gray-900 dark:text-white font-medium hover:text-primary-600 transition">
+                                Sign In
+                            </Link>
+                            <Link href="/auth" className="btn-primary">
+                                Get Started
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </nav>

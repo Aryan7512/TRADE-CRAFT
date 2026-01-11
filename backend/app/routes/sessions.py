@@ -16,6 +16,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
 
+@router.get("/", response_model=List[SessionResponse])
+async def get_my_sessions(current_user: dict = Depends(get_current_user)):
+    """Get all sessions for current user"""
+    sessions = await db.get_user_sessions(current_user["id"])
+    return sessions
+
+
 @router.get("/match/{match_id}", response_model=List[SessionResponse])
 async def get_match_sessions(
     match_id: str,

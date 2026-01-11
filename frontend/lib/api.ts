@@ -115,6 +115,11 @@ class APIClient {
         return data
     }
 
+    async getSessions() {
+        const { data } = await this.client.get('/api/sessions')
+        return data
+    }
+
     async createSession(sessionData: any) {
         const { data } = await this.client.post('/api/sessions', sessionData)
         return data

@@ -16,3 +16,9 @@ frontend/npm-debug.log*
 *.swo
 .vscode/
 .idea/
+
+# Hide helper docs but keep README
+FILE_STRUCTURE.md
+PROJECT_SUMMARY.md
+QUICKSTART.md
+SETUP_CHECKLIST.md
